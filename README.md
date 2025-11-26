@@ -1,23 +1,32 @@
 # EmoVision
 
-面向情感识别研究与落地场景的视觉模型实验框架。
+面向情感识别研究与落地场景的视觉模型实验框架。EmoVision 旨在提供统一的配置、训练与记录流程，支持多模型对比与自动可视化。
 
 ## 核心特性
 - **模块化架构**：`models/`、`data/`、`training/`、`utils/` 各司其职，方便替换模型与组件。
-- **集中配置**：所有超参数由 `config.Config` 管理，可在运行期安全地 `update_config`。
-- **实验留痕**：内置 `BaseModel.save_experiment` 与 `experiments/` 目录，保证每次训练都有记录可追溯。
+- **多模型对比**：支持一次性训练多个模型，并自动生成对比图表。
+- **集中配置**：所有超参数由 `config.Config` 管理，支持命令行参数覆盖。
+- **实验留痕**：自动保存带时间戳的实验结果（JSON）与可视化图表（PNG）。
 - **团队规范**：`开发规范.md` 约束命名、分支、日志等习惯，降低多人协作成本。
 
 ## 仓库结构
 ```
 EmoVision/
 ├── config.py              # Config 数据类，集中管理超参数
-├── models/                # 模型定义（BaseModel + 各模型）
-├── data/                  # Dataset、DataLoader 与增强策略
-├── training/              # Trainer、Metrics、Callbacks
-├── utils/                 # 可视化、通用工具
-├── experiments/           # 实验日志与产物
-├── main.py                # 训练/评估入口
+├── models/                # 模型定义
+│   ├── base_model.py      # 模型基类
+│   └── simple_cnn.py      # 示例模型
+├── data/                  # 数据处理
+│   ├── dataloader.py      # EmotionROI 数据集加载
+│   └── transforms.py      # 数据增强策略
+├── training/              # 训练核心
+│   └── trainer.py         # 训练循环封装
+├── utils/                 # 工具库
+│   └── visualization.py   # 结果可视化绘制
+├── experiments/           # 实验产物
+│   ├── *.json             # 训练指标记录（带时间戳）
+│   └── charts/            # 自动生成的对比图表
+├── main.py                # 主程序（支持 CLI）
 └── 开发规范.md             # 团队开发约定
 ```
 
@@ -28,13 +37,24 @@ pip install -r requirements.txt
 ```
 
 ### 2. 数据放置
-- 默认数据根目录为 `data/`，可在 `Config.dataset_root` 中修改。
-- 推荐结构：`data/{train,val,test}/{class_name}/*.jpg`，具体取决于自定义 `Dataset`。
+- 默认支持 **EmotionROI** 数据集。
+- 请将数据解压至 `data/EmotionROI_6/`，结构如下：
+  - `images/` (包含 anger, joy 等子文件夹)
+  - `training.txt`
+  - `testing.txt`
 
 ### 3. 运行训练
+**基础运行（默认 SimpleCNN）：**
 ```bash
 python main.py
 ```
+
+**高级用法（多模型对比 + 参数覆盖）：**
+```bash
+# 运行指定模型，修改 epoch 和 batch size，指定实验名
+python main.py --models SimpleCNN --epochs 20 --batch_size 16 --exp_name my_test
+```
+支持参数：`--models` (列表), `--epochs`, `--batch_size`, `--lr`, `--exp_name`。
 
 ## 配置与模型示例
 ```python
@@ -59,9 +79,9 @@ model.update_config({
 3. 可选回调（早停、日志推送等）统一放入 `training/callbacks.py`。
 
 ## 实验记录
-- 训练结束后调用 `BaseModel.save_experiment` 会在 `experiments/` 下生成 JSON。
-- 推荐同时撰写 Markdown：命名格式 `YYYY-MM-DD-Model-Remark.md`，附配置、指标、结论与 TODO。
-- 可视化图表（Loss/Acc、混淆矩阵）置于 `experiments/assets/`，在文档中相对引用。
+- **数据记录**：训练结束后，会在 `experiments/` 下生成 `{exp_name}_{timestamp}.json`，包含所有运行模型的超参、Loss/Acc 历史与最终结果。
+- **可视化**：自动在 `experiments/charts/` 下生成对比图表（Loss 曲线、Accuracy 曲线），方便直观评估。
+- **手动记录**：推荐配合 Markdown 文档记录实验结论，引用自动生成的图表。
 
 ## 开发规范
 完整说明见 `开发规范.md`，主要包括：

@@ -1,6 +1,7 @@
 # 🎭 EmoVision
 
-> 面向情感识别研究与落地场景的视觉模型实验框架  
+> 面向图像识别研究与训练ML/DL视觉模型实验框架
+> 导入数据与模型架构，一键开始训练 · 评估 · 可视化 · 记录  
 > 统一配置 · 多模型对比 · 自动可视化
 
 ---
@@ -45,14 +46,54 @@ EmoVision/
 pip install -r requirements.txt
 ```
 
-### 2️⃣ 数据放置
+### 2️⃣ 数据格式与放置
 - 默认支持 **EmotionROI** 数据集。
 - 请将数据解压至 `data/EmotionROI_6/`，结构如下：
-  - `images/` (包含 anger, joy 等子文件夹)
-  - `training.txt`
-  - `testing.txt`
+  - `images/` (包含不同类别的图片)
+  - `training.txt` （每张图片的路径、标签信息, eg. `anger/234.jpg`）
+  - `testing.txt` （每张图片的路径、标签信息, eg. `anger/234.jpg`）
 
-### 3️⃣ 运行训练
+
+## 3️⃣ 添加自定义模型
+
+### 1. 定义模型类
+在 `models/` 下新建文件（例如 `my_new_model.py`），继承 `BaseModel` 并实现 `setup_model` 方法：
+
+```python
+from .base_model import BaseModel
+import torch.nn as nn
+
+class MyNewModel(BaseModel):
+    def setup_model(self):
+        # 使用 self.config 访问配置
+        self.net = nn.Sequential(
+            nn.Linear(self.config.input_size, 128),
+            nn.ReLU(),
+            nn.Linear(128, self.config.num_classes)
+        )
+        # ⚠️ 必须将核心网络赋值给 self.model，Trainer 会自动将其移至 GPU
+        self.model = self.net
+```
+
+### 2. 注册模型
+打开 `main.py`，导入你的新模型类并加入 `MODEL_ZOO` 字典：
+
+```python
+# main.py
+from models.my_new_model import MyNewModel  # <--- 导入
+
+MODEL_ZOO = {
+    "SimpleCNN": SimpleCNN,
+    "MyNewModel": MyNewModel,  # <--- 注册
+}
+```
+
+### 3. 运行
+```bash
+python main.py --models MyNewModel
+```
+
+## 4️⃣ 运行训练
 **基础运行（默认 SimpleCNN）：**
 ```bash
 python main.py
@@ -65,26 +106,6 @@ python main.py --models SimpleCNN --epochs 20 --batch_size 16 --exp_name my_test
 ```
 
 > 💡 **支持参数**：`--models` (列表), `--epochs`, `--batch_size`, `--lr`, `--exp_name`
-
----
-
-## 🔧 配置与模型示例
-```python
-from config import Config
-from models.your_model import YourModel
-
-cfg = Config(learning_rate=5e-4, batch_size=64)
-model = YourModel(cfg)
-
-# 在线调整部分超参数
-model.update_config({
-	"scheduler": "cosine",
-	"scheduler_params": {"t_max": 30}
-})
-```
-
-> 💡 `Config` 仅包含属性，所有字段已在 `config.py` 中标注中文注释  
-> 💡 `update_config` 只会在必要时重建优化器，避免无谓开销
 
 ---
 

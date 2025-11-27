@@ -11,7 +11,7 @@ from config import Config
 from data.dataloader import get_dataloaders
 from models.simple_cnn import SimpleCNN
 from training.trainer import Trainer
-from utils.visualization import plot_experiment_results
+from utils.visualization import plot_experiment_results, plot_confusion_matrix
 
 
 # 模型注册表
@@ -57,6 +57,12 @@ def main():
     print(f"   训练集大小: {len(train_loader.dataset)}")
     print(f"   验证集大小: {len(val_loader.dataset)}")
 
+    # 准备保存目录
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    exp_name = overrides.get("experiment_name", cfg.experiment_name)
+    charts_dir = os.path.join("experiments/charts", f"{exp_name}_{timestamp}")
+    os.makedirs(charts_dir, exist_ok=True)
+
     # 3. 遍历训练选定的模型
     experiment_results = {}
 
@@ -93,13 +99,24 @@ def main():
             print("\n🛑 训练被用户中断，保存当前进度...")
 
         # 保存训练好的模型权重
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # timestamp 使用循环外定义的统一时间戳
         save_dir = "experiments/trained_models"
         os.makedirs(save_dir, exist_ok=True)
         model_save_path = os.path.join(
             save_dir, f"{model_name}_{timestamp}.pth")
         torch.save(model.state_dict(), model_save_path)
         print(f"💾 模型权重已保存至: {model_save_path}")
+
+        # 获取预测结果并绘制混淆矩阵
+        print(f"📊 正在生成 {model_name} 的混淆矩阵...")
+        y_true, y_pred = trainer.get_predictions()
+
+        # 获取类别名称
+        idx_to_class = {v: k for k,
+                        v in train_loader.dataset.class_to_idx.items()}
+        classes = [idx_to_class[i] for i in range(len(idx_to_class))]
+
+        plot_confusion_matrix(y_true, y_pred, classes, charts_dir, model_name)
 
         # 6. 收集实验结果
         print("-" * 60)
@@ -108,13 +125,13 @@ def main():
             'hyperparams': model.get_hyperparams(),
             'history': model.history,
             'final_val_acc': model.history['val_acc'][-1] if model.history['val_acc'] else 0,
-            'model_path': model_save_path 
+            'model_path': model_save_path
         }
         print(f"✨ 模型 {model_name} 训练结束!")
 
     # 7. 统一保存所有结果
     if experiment_results:
-        exp_name = overrides.get("experiment_name", cfg.experiment_name)
+        # exp_name 和 timestamp 已经在上面定义
 
         os.makedirs("experiments/training_history", exist_ok=True)
         save_path = os.path.join(
@@ -122,12 +139,13 @@ def main():
 
         with open(save_path, "w", encoding="utf-8") as f:
             json.dump(experiment_results, f, indent=2, ensure_ascii=False)
-        print(f"\n💾 所有实验结果已保存至: {save_path}")
+        print(f"\n💾 所有模型训练记录已保存至: {save_path}")
 
         # 8. 生成可视化图表
         try:
             chart_prefix = f"{exp_name}_{timestamp}"
-            plot_experiment_results(experiment_results, prefix=chart_prefix)
+            plot_experiment_results(
+                experiment_results, save_dir=charts_dir, prefix=chart_prefix)
         except Exception as e:
             print(f"⚠️  可视化生成失败: {e}")
 

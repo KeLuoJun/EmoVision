@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, Optional, Tuple
+from typing import Any, Dict, Iterable, Optional, Tuple, List
 
 import torch
 import torch.nn as nn
@@ -124,6 +124,29 @@ class Trainer:
         avg_loss = total_loss / max(len(loader), 1)
         accuracy = correct / max(total, 1)
         return avg_loss, accuracy
+
+    # ------------------------------------------------------------------
+    def get_predictions(self, loader: Optional[DataLoader] = None) -> Tuple[List[int], List[int]]:
+        """获取指定数据集的预测结果和真实标签。"""
+        loader = loader or self.val_loader
+        if loader is None:
+            raise ValueError("未提供 DataLoader 且 val_loader 为空。")
+
+        self.model.eval()
+        all_preds = []
+        all_targets = []
+
+        with torch.no_grad():
+            for batch in loader:
+                inputs, targets = self._parse_batch(batch)
+                inputs = inputs.to(self.device)
+                outputs = self.model(inputs)
+                preds = outputs.argmax(dim=1)
+
+                all_preds.extend(preds.cpu().tolist())
+                all_targets.extend(targets.cpu().tolist())
+
+        return all_targets, all_preds
 
     # ------------------------------------------------------------------
     def _parse_batch(self, batch: Any) -> Tuple[torch.Tensor, torch.Tensor]:

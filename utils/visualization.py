@@ -6,6 +6,8 @@ from typing import Dict, List, Optional
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
+from sklearn.metrics import confusion_matrix
 
 
 def plot_experiment_results(results: Dict[str, Dict], save_dir: str = "experiments/charts", prefix: str = ""):
@@ -138,9 +140,36 @@ def plot_experiment_results(results: Dict[str, Dict], save_dir: str = "experimen
     plt.tight_layout(rect=[0, 0.12, 1, 0.94])
 
     # 保存图片
-    filename = f"{prefix}_comparison.png" if prefix else "comparison.png"
+    filename = "comparison.png"
     save_path = os.path.join(save_dir, filename)
     plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
     plt.close()
 
-    print(f"📊 可视化图表已保存: {save_path}")
+    print(f"💾 模型训练相关曲线图表已保存: {save_path}")
+
+
+def plot_confusion_matrix(y_true: List[int], y_pred: List[int], classes: List[str],
+                          save_dir: str, model_name: str):
+    """
+    绘制并保存混淆矩阵热力图。
+    """
+    os.makedirs(save_dir, exist_ok=True)
+
+    cm = confusion_matrix(y_true, y_pred)
+    # Normalize
+    cm_norm = cm.astype('float') / (cm.sum(axis=1)[:, np.newaxis] + 1e-10)
+
+    plt.figure(figsize=(10, 8), dpi=300)
+    sns.heatmap(cm_norm, annot=True, fmt='.2f', cmap='Blues',
+                xticklabels=classes, yticklabels=classes)
+
+    plt.title(f'Confusion Matrix: {model_name}', fontsize=16)
+    plt.ylabel('True Label', fontsize=12)
+    plt.xlabel('Predicted Label', fontsize=12)
+
+    plt.tight_layout()
+    save_path = os.path.join(save_dir, f"confusion_matrix_{model_name}.png")
+    plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
+    plt.close()
+
+    print(f"💾 混淆矩阵已保存: {save_path}")

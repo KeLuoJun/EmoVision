@@ -17,12 +17,13 @@ class Config:
     # ===== 数据相关 =====
     dataset_root: str = "data"  # 数据集根目录
     dataset_name: str = "EmotionROI_6"  # 数据集名称
+    val_ratio: float = 0.2
     num_classes: int = 7  # 分类类别数量
     input_size: int = 224  # 输入图像尺寸
     num_workers: int = 4  # DataLoader 的并行加载进程数
 
     # ===== 训练超参数 =====
-    epochs: int = 5  # 训练轮数
+    epochs: int = 1  # 训练轮数
     batch_size: int = 32  # 每批数据大小
     learning_rate: float = 1e-3  # 学习率
     weight_decay: float = 1e-4  # 权重衰减

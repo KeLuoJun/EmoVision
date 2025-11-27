@@ -1,6 +1,6 @@
 # 🎭 EmoVision
 
-> 面向图像识别研究与训练ML/DL视觉模型实验框架  
+> 面向图像识别研究与ML/DL视觉模型训练的实验框架  
 > 导入数据与模型架构，一键开始训练 · 评估 · 可视化 · 记录  
 > 统一配置 · 多模型对比 · 自动可视化
 
@@ -48,7 +48,7 @@ pip install -r requirements.txt
 
 ### 2️⃣ 数据格式与放置
 - 默认支持 **EmotionROI** 数据集。
-- 请将数据解压至 `data/EmotionROI_6/`，结构如下：
+- 请将数据解压至 `data/data_name/`，结构如下：
   - `images/` (包含不同类别的图片)
   - `training.txt` （每张图片的路径、标签信息, eg. `anger/234.jpg`）
   - `testing.txt` （每张图片的路径、标签信息, eg. `anger/234.jpg`）

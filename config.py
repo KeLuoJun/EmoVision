@@ -16,6 +16,7 @@ class Config:
 
     # ===== 数据相关 =====
     dataset_root: str = "data"  # 数据集根目录
+    dataset_name: str = "EmotionROI_6"  # 数据集名称
     num_classes: int = 7  # 分类类别数量
     input_size: int = 224  # 输入图像尺寸
     num_workers: int = 4  # DataLoader 的并行加载进程数

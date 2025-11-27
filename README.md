@@ -8,7 +8,7 @@
 
 ## ✨ 核心特性
 
-- 🧩 **模块化架构** — `models/`、`data/`、`training/`、`utils/` 各司其职，方便替换模型与组件
+- 🧩 **模块化架构** — `models/`、`data/`、`training/`、`utils/`，方便替换模型与组件
 - 📊 **多模型对比** — 支持一次性训练多个模型，并自动生成对比图表
 - ⚙️ **集中配置** — 所有超参数由 `config.Config` 管理，支持命令行参数覆盖
 - 💾 **实验留痕** — 自动保存带时间戳的实验结果（JSON）与可视化图表（PNG）
@@ -24,17 +24,14 @@ EmoVision/
 │   ├── base_model.py      # 模型基类
 │   └── simple_cnn.py      # 示例模型
 ├── data/                  # 数据处理
-│   ├── dataloader.py      # EmotionROI 数据集加载
+│   ├── dataloader.py      # 数据集加载
 │   └── transforms.py      # 数据增强策略
 ├── training/              # 训练核心
 │   └── trainer.py         # 训练循环封装
 ├── utils/                 # 工具库
 │   └── visualization.py   # 结果可视化绘制
 ├── experiments/           # 实验产物
-│   ├── *.json             # 训练指标记录（带时间戳）
-│   └── charts/            # 自动生成的对比图表
-├── main.py                # 主程序（支持 CLI）
-└── 开发规范.md             # 团队开发约定
+└── main.py                # 主程序
 ```
 
 ---
@@ -122,15 +119,4 @@ python main.py --models SimpleCNN --epochs 20 --batch_size 16 --exp_name my_test
 - 📊 **可视化** — 在 `experiments/charts/` 下生成对比图表（Loss 曲线、Accuracy 曲线、混淆矩阵），方便直观评估
 - 💾 **模型保存** — 在 `experiments/trained_models/`下保存训练好的模型权重，便于后续加载与推理
 - ✍️ **手动记录** — 推荐配合 Markdown 文档记录实验结论，引用自动生成的图表
-
----
-
-## 📖 开发规范发规范
-
-完整说明见 [`开发规范.md`](./开发规范.md)，主要包括：
-
-- ✅ 代码与命名风格、类型注解约定
-- ✅ Config 使用方式、模型继承要求
-- ✅ 数据/训练模块职责划分与文件上限
-- ✅ Git 分支、提交信息与自检流程
 

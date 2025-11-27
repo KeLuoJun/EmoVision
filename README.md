@@ -118,8 +118,9 @@ python main.py --models SimpleCNN --epochs 20 --batch_size 16 --exp_name my_test
 
 ## 📝 实验记录验记录
 
-- 📄 **数据记录** — 训练结束后，会在 `experiments/` 下生成 `{exp_name}_{timestamp}.json`，包含所有运行模型的超参、Loss/Acc 历史与最终结果
-- 📊 **可视化** — 自动在 `experiments/charts/` 下生成对比图表（Loss 曲线、Accuracy 曲线），方便直观评估
+- 📄 **数据记录** — 训练结束后，会在 `experiments/training_history` 下生成 `{exp_name}_{timestamp}.json`，包含所有运行模型的超参、Loss/Acc 历史与最终结果
+- 📊 **可视化** — 在 `experiments/charts/` 下生成对比图表（Loss 曲线、Accuracy 曲线、混淆矩阵），方便直观评估
+- 💾 **模型保存** — 在 `experiments/trained_models/`下保存训练好的模型权重，便于后续加载与推理
 - ✍️ **手动记录** — 推荐配合 Markdown 文档记录实验结论，引用自动生成的图表
 
 ---

@@ -5,6 +5,7 @@ import json
 import os
 import sys
 from datetime import datetime
+import torch
 
 from config import Config
 from data.dataloader import get_dataloaders
@@ -15,7 +16,7 @@ from utils.visualization import plot_experiment_results
 
 # 模型注册表
 MODEL_ZOO = {
-    "SimpleCNN": SimpleCNN,
+    "SimpleCNN": SimpleCNN
 }
 
 
@@ -91,23 +92,33 @@ def main():
         except KeyboardInterrupt:
             print("\n🛑 训练被用户中断，保存当前进度...")
 
+        # 保存训练好的模型权重
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        save_dir = "experiments/trained_models"
+        os.makedirs(save_dir, exist_ok=True)
+        model_save_path = os.path.join(
+            save_dir, f"{model_name}_{timestamp}.pth")
+        torch.save(model.state_dict(), model_save_path)
+        print(f"💾 模型权重已保存至: {model_save_path}")
+
         # 6. 收集实验结果
         print("-" * 60)
         experiment_results[model_name] = {
             'model_name': model_name,
             'hyperparams': model.get_hyperparams(),
             'history': model.history,
-            'final_val_acc': model.history['val_acc'][-1] if model.history['val_acc'] else 0
+            'final_val_acc': model.history['val_acc'][-1] if model.history['val_acc'] else 0,
+            'model_path': model_save_path 
         }
         print(f"✨ 模型 {model_name} 训练结束!")
 
     # 7. 统一保存所有结果
     if experiment_results:
         exp_name = overrides.get("experiment_name", cfg.experiment_name)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        os.makedirs("experiments", exist_ok=True)
-        save_path = os.path.join("experiments", f"{exp_name}_{timestamp}.json")
+        os.makedirs("experiments/training_history", exist_ok=True)
+        save_path = os.path.join(
+            "experiments/training_history", f"{exp_name}_{timestamp}.json")
 
         with open(save_path, "w", encoding="utf-8") as f:
             json.dump(experiment_results, f, indent=2, ensure_ascii=False)
